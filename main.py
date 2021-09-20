@@ -18,7 +18,8 @@ def dfs(g,v):
         seen.append(x)
         # treat x.
         for c in g[x]:
-            if c not in seen and c not in to_see:
+#           if c not in seen and c not in to_see:
+            if c not in seen:
                 to_see.append(c)
     return seen
 
@@ -31,7 +32,8 @@ def bfs(g,v):
         seen.append(x)
         # treat x.
         for c in g[x]:
-            if c not in seen and c not in to_see:
+#           if c not in seen and c not in to_see:
+            if c not in seen:
                 to_see.append(c)
     return seen
 
