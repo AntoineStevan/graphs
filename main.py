@@ -1,44 +1,122 @@
 from pprint import pprint
 
 
-def dfs_rec(g, v, seen=[]):
+def dfs_rec(g: list, v: int, seen=[]) -> list:
+    """
+        Performs a recursive Depth First Search (DFS)
+        traversal of graph g, starting from node v.
+
+        Args
+        ----
+        g: list of lists of ints
+            the adjacency lists of the graph
+            representation.
+        v: int, 0 <= v < |g|
+            the starting node of DFS.
+        seen: list of ints, optional
+            the list of seen nodes, used for
+            recursion.
+
+        Return
+        ------
+        seen: list of ints
+            the list of nodes explored, in order.
+    """
     ## treat v.
-    seen = seen + [v]
+
+    seen = seen + [v]  # add current node.
+
+    # explore every neighbour nor already seen.
     for c in g[v]:
         if c not in seen:
             seen = dfs_rec(g, c, seen)
     return seen
 
 
-def dfs(g,v):
-    seen = []
-    to_see = [v]
+def dfs(g: list, v: int) -> list:
+    """
+        Performs an iterative Depth First Search (DFS)
+        traversal of graph g, starting from node v.
+
+        Args
+        ----
+        g: list of lists of ints
+            the adjacency lists of the graph
+            representation.
+        v: int, 0 <= v < |g|
+            the starting node of DFS.
+
+        Return
+        ------
+        seen: list of ints
+            the list of nodes explored, in order.
+    """
+    seen = []     # list of explored nodes.
+    to_see = [v]  # stack of remaining nodes.
     while len(to_see) != 0:
-        x = to_see.pop()
-        if x not in seen:
-            seen.append(x)
-            # treat x.
+        x = to_see.pop()        # get node in FIFO.
+        if x not in seen:       # skip if explored.
+            seen.append(x)      #  \-> avoids duplicates.
+
+            ## treat x.
+
             for c in g[x]:
                 if c not in seen:
                     to_see.append(c)
     return seen
 
 
-def bfs(g,v):
-    seen = []
-    to_see = [v]
+def bfs(g: list, v: int) -> list:
+    """
+        Performs an iterative Breadth First Search (BFS)
+        traversal of graph g, starting from node v.
+
+        Args
+        ----
+        g: list of lists of ints
+            the adjacency lists of the graph
+            representation.
+        v: int, 0 <= v < |g|
+            the starting node of DFS.
+
+        Return
+        ------
+        seen: list of ints
+            the list of nodes explored, in order.
+    """
+    seen = []     # list of explored nodes.
+    to_see = [v]  # stack of remaining nodes.
     while len(to_see) != 0:
-        x = to_see.pop(0)
-        if x not in seen:
-            seen.append(x)
-            # treat x.
+        x = to_see.pop(0)       # get node in FIFO.
+        if x not in seen:       # skip if explored.
+            seen.append(x)      #  \-> avoids duplicates.
+
+            ## treat x.
+
             for c in g[x]:
                 if c not in seen:
                     to_see.append(c)
     return seen
 
 
-def argmin_dists(N, dists):
+def argmin_dists(N: list, dists: list) -> int:
+    """
+        Computes the index stored in N corresponding
+        with the minimal distance stored in dists.
+
+        Args
+        ----
+        N: list of ints
+            the list of integer indices.
+        dists: list of numbers
+            the list of distances used to sort the
+            indices in N.
+
+        Return
+        ------
+        i: integer
+            the index of N which minimizes dists[j] for j in N.
+    """
     i = N[0]
     m = dists[i]
     for j in N:
@@ -47,21 +125,50 @@ def argmin_dists(N, dists):
             m = dists[j]
     return i
 
-def dijkstra(g,w,s):
-    dists = [float("inf") for _ in g]
-    preds = [None for _ in g]
-    N = [k for k, _ in enumerate(g)]
+def dijkstra(g: list, w: list, s: int) -> tuple:
+    """
+        Computes all shortest path starting from s, in graph
+        g weighted by w.
+        This shortest path computation uses Dijkstra's algorithm.
 
-    dists[s] = 0
+        Args
+        ----
+        g: list of lists of ints
+            the adjacency lists of the graph
+            representation.
+        w: |g|x|g| matrix of positive numbers
+            the matrix of all weights between pairs of vertices.
+        s: int, 0 <= s < |g|
+            the starting node of dijkstra's algorithm.
+
+        Return
+        ------
+        dists: list of numbers
+            the list of distances from s to any other vertex in g.
+            s always has distance 0.
+            dists[v] is the distance from s to v.
+        preds: list of ints
+            the list of predecessors along the shortest paths.
+            s always has no predecessor, i.e. preds[s] = None.
+            to build shortest path from s to v=c_n in g, start from
+            preds[c_n] = c_n-1, then c_n-2 = preds[c_n-1], and so on until
+            None is found. The path is s=c_1 -> c_2 -> ... -> c_n=v.
+    """
+    dists = [float("inf") for _ in g]  # node infinitely far away.
+    preds = [None for _ in g]          # no predecessor.
+    N = [k for k, _ in enumerate(g)]   # all nodes to be explored.
+
+    dists[s] = 0  # s is as close as can be from s.
     while len(N) != 0:
-        v = argmin_dists(N, dists)
-        N.remove(v)
+        v = argmin_dists(N, dists)  # get "minimal-distance" node.
+        N.remove(v)                 # and mark it explored.
         for n in g[v]:
             if n in N:
-                d = dists[v] + w[v][n]
-                if d < dists[n]:
-                    dists[n] = d
+                d = dists[v] + w[v][n]  # update distance and predecessor
+                if d < dists[n]:        # of n with new distance and node
+                    dists[n] = d        # v.
                     preds[n] = v
+
     return dists, preds
 
 
