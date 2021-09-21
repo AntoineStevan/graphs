@@ -1,7 +1,7 @@
 from pprint import pprint
 
 
-def dfs_rec(g: list, v: int, seen=[]) -> list:
+def dfs_rec(g: list[list[int]], v: int, seen=[]) -> list[int]:
     """
         Performs a recursive Depth First Search (DFS)
         traversal of graph g, starting from node v.
@@ -33,7 +33,7 @@ def dfs_rec(g: list, v: int, seen=[]) -> list:
     return seen
 
 
-def dfs(g: list, v: int) -> list:
+def dfs(g: list[list[int]], v: int) -> list[int]:
     """
         Performs an iterative Depth First Search (DFS)
         traversal of graph g, starting from node v.
@@ -66,7 +66,7 @@ def dfs(g: list, v: int) -> list:
     return seen
 
 
-def bfs(g: list, v: int) -> list:
+def bfs(g: list[list[int]], v: int) -> list[int]:
     """
         Performs an iterative Breadth First Search (BFS)
         traversal of graph g, starting from node v.
@@ -99,7 +99,7 @@ def bfs(g: list, v: int) -> list:
     return seen
 
 
-def argmin_dists(N: list, dists: list) -> int:
+def argmin_dists(N: list[int], dists: list[float]) -> int:
     """
         Computes the index stored in N corresponding
         with the minimal distance stored in dists.
@@ -125,7 +125,10 @@ def argmin_dists(N: list, dists: list) -> int:
             m = dists[j]
     return i
 
-def dijkstra(g: list, w: list, s: int) -> tuple:
+def dijkstra(
+        g: list[list[int]],
+        w: list[list[int]],
+        s: int) -> tuple[list[float], list[int]]:
     """
         Computes all shortest path starting from s, in graph
         g weighted by w.
@@ -176,7 +179,7 @@ def dijkstra(g: list, w: list, s: int) -> tuple:
 # binary heap.
 
 
-def argmin_dists_h(N: list, dists: list, h: lambda n,v: 0) -> int:
+def argmin_dists_h(N: list[int], dists: list[float], h: lambda n,v: 0) -> int:
     """
         Computes the index stored in N corresponding
         with the minimal distance stored in dists.
@@ -203,7 +206,11 @@ def argmin_dists_h(N: list, dists: list, h: lambda n,v: 0) -> int:
             m = dists[j] + h(j)
     return i
 
-def a_star(g: list, w: list, s: int, h: lambda n,v: 0) -> tuple:
+def a_star(
+        g: list[list[int]],
+        w: list[list[int]],
+        s: int,
+        h: lambda n,v: 0) -> tuple[list[float], list[int]]:
     """
         Computes all shortest path starting from s, in graph
         g weighted by w.
@@ -256,18 +263,148 @@ def a_star(g: list, w: list, s: int, h: lambda n,v: 0) -> tuple:
     return dists, preds
 
 
-# TODO
-def prim():
-    ...
+def prim(
+        g: list[list[int]],
+        w: list[list[int]]) -> tuple[list[float], list[int]]:
+    """
+        Computes the Minimum Spanning Tree (MST) of graph g weighted by w.
+        This MST implementation uses Prim's algorithm.
+        Prim's algorithm is a greedy tree growth, from any node, with
+        respect to the nodes of the graph.
+
+        Args
+        ----
+        g: list of lists of ints
+            the adjacency lists of the graph
+            representation.
+        w: |g|x|g| matrix of positive numbers
+            the matrix of all weights between pairs of vertices.
+
+        Return
+        ------
+        cheapest: list of numbers
+            the list of cheapest weights inside the MST of g.
+            s always has the cheapest, i.e. 0, weight.
+            cheapest[v] is the cheapest weight inside MST for v.
+        preds: list of ints
+            the list of predecessors inside the Spanning Tree.
+            s always has no predecessor, i.e. preds[s] = None.
+            to build the resulting tree, read the preds list in reverse,
+            from any node.
+    """
+    cheapest = [float("inf") for _ in g]  # node infinitely far away.
+    preds = [None for _ in g]             # no predecessor.
+    N = [v for v in range(len(g))]        # all nodes to be explored.
+
+    cheapest[0] = 0
+    while len(N) != 0:
+        v = argmin_dists(N, cheapest)  # get "cheapest-weight" node.
+        N.remove(v)                    # and mark it explored.
+        for n in g[v]:
+            if n in N:
+                c = w[v][n]          # update cheapest weight and
+                if c < cheapest[n]:  # predecessor of n with new 
+                    cheapest[n] = c  # cheapest weight and node v.
+                    preds[n] = v
+
+    return cheapest, preds
 
 
-# TODO
-# union-find
+def make_union_find(s: int) -> list[int]:
+    """
+        Creates a union-find structure, namely an array containing indices
+        to go from any node in the tree.
+        Starts with every node pointing to itself.
 
+        Args
+        ----
+        s: int, positive
+            the size of the union-find structure.
 
-# TODO
-def kruskal():
-    ...
+        Return
+        ------
+        uf: list of ints
+            the initialized union-find structure.
+    """
+    return [k for k in range(s)]
+
+def find(uf: list[int], u: int) -> int:
+    """
+        Finds the representative of element u in the union-find uf.
+        No optimization is performed to reduce the size of the
+        union-find whilst findind the representative.
+
+        Args
+        ----
+        uf: list of ints
+            a union-find structure.
+        u: int
+            the element of uf one wants the representative of.
+
+        Return
+        ------
+        v: int
+            the representative of u in the union-find uf.
+    """
+    if u == uf[u]:  # representative found.
+        return u
+    return find(uf, uf[u])
+
+def union(uf: list[int], u: int, v: int) -> list[int]:
+    """
+        Performs the union of u and v, i.e. setting u's and v's
+        representatives to the same value.
+        No optimization is performed to reduce the size of the
+        union-find whilst merging u and v.
+
+        Args
+        ----
+        uf: list of ints
+            a union-find structure.
+        u: int
+            one element of uf one wants to merge with v.
+        v: int
+            one element of uf one wants to merge with u.
+
+        Return
+        ------
+        uf: list of ints
+            a new union-find structure where u and v have the
+            same representative.
+    """
+    uf[u] = find(uf, v)
+    return uf
+
+def kruskal(g: list[list[int]], w: list[list[int]]) -> list[(int, int)]:
+    """
+        Computes the Minimum Spanning Tree (MST) of graph g weighted by w.
+        This MST implementation uses Kruskal's algorithm.
+        Kruskal's algorithm is a greedy tree growth with respect to the
+        edges of the graph.
+
+        Args
+        ----
+        g: list of lists of ints
+            the adjacency lists of the graph
+            representation.
+        w: |g|x|g| matrix of positive numbers
+            the matrix of all weights between pairs of vertices.
+
+        Return
+        ------
+        selected: list of tuple of 2 ints
+            the list of edges used to build the MST.
+    """
+    edges = [(w[u][v],u,v) for u in range(len(w)) for v in range(len(w[u])) if u!=v]
+    edges = sorted(edges)  # sort all the edges by weight.
+
+    selected = []                  # no edge selected.
+    uf = make_union_find(len(g))   # empty union-find.
+    for wuv, u, v in edges:
+        if find(uf, u) != find(uf, v):  # union and select edge
+            uf = union(uf, u, v)        # if nodes do not have the
+            selected.append((u,v))      # same representative.
+    return selected
 
 
 # TODO
@@ -336,7 +473,29 @@ def main():
             ]
     print("g_p35:")
     for i, (li, wi) in enumerate(zip(g_p35, w_p35)): print('\t', i, li, wi)
-    print(dijkstra(g_p35, w_p35, 0))
+    print("dijkstra:", dijkstra(g_p35, w_p35, 0))
+    print()
+
+    # graph on page 53 of Supaero's "FSD301 Optimization in graphs" lesson.
+    g_p53 = [
+               [1,2,3,4], # w
+               [0,2,3,4], # 1
+               [0,1,3,4], # 2
+               [0,1,2,4], # 3
+               [0,1,2,3]  # 4
+            ]
+    w_p53 = [
+               [0,1,5,4,3], # w
+               [1,0,5,2,5], # 1
+               [5,5,0,3,4], # 2
+               [4,2,3,0,2], # 3
+               [3,5,4,2,0], # 4
+            ]
+    print("g_p53:")
+    for i, (li, wi) in enumerate(zip(g_p53, w_p53)): print('\t', i, li, wi)
+    print("prim:", prim(g_p53, w_p53))
+    print()
+    print("kruskal:", kruskal(g_p53, w_p53))
 
 
 if __name__ == "__main__":
