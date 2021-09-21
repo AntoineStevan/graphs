@@ -412,9 +412,43 @@ def bellman_ford():
     ...
 
 
-# TODO
-def held_karp_bu():
-    ...
+def held_karp_bu(g: list[list[int]], w: list[list[int]]) -> tuple[int, tuple[int, int]]:
+    """
+        Solves the Travelling SalesPerson (TSP) problem wy using Held-Karp's algorithm
+        in its bottum-up version.
+
+        Args
+        ----
+        g: list of lists of ints
+            the adjacency lists of the graph
+            representation.
+        w: |g|x|g| matrix of positive numbers
+            the matrix of all weights between pairs of vertices.
+
+        Return
+        ------
+        solution: tuple with 1 int and a tuple of 2 ints
+            the solution is composed of the total cost of the path and a tuple
+            containing the hot-encoding of the nodes and the final node in the
+            path.
+    """
+    L = {}  # L[{S},j] is the cost of the path ending in j and going through the nodes in S.
+    for i in range(1, len(g)):
+        L[(1<<i, i)] = w[0][i]
+
+    # compute L from the bottom-up.
+    for m in range(2, len(g)):
+        # S is the hot-encoding of the nodes used in each subset, i.e.
+        # if nodes 1 and 3 are used in a set of 4 nodes -> S = b1010
+        for S in [S << 1 for S in range(2**(len(g)-1)) if sum(map(int, bin(S)[2:])) == m]:
+            # conversion to the actual node numbers.
+            S_ = [j for j in range(1, len(g)) if S>>j & 1]
+            # dynamic programming part to go from m-1 to m.
+            for j in S_:
+                L[(S,j)] = min([L[(S & ~(1<<j), k)] + w[k][j] for k in S_ if k != j])
+
+    # do not forget the cost for the way back to the starting node.
+    return min([(L[(S, j)] + w[j][0], (S,j)) for j in range(1, len(g))])
 
 
 # TODO
@@ -494,8 +528,25 @@ def main():
     print("g_p53:")
     for i, (li, wi) in enumerate(zip(g_p53, w_p53)): print('\t', i, li, wi)
     print("prim:", prim(g_p53, w_p53))
-    print()
     print("kruskal:", kruskal(g_p53, w_p53))
+    print()
+    
+    # graph on page 86 of Supaero's "FSD301 Optimization in graphs" lesson.
+    g_p86 = [
+               [1,2,3], # A
+               [0,2,3], # B
+               [0,1,3], # C
+               [0,1,2], # D
+            ]
+    w_p86 = [
+               [0,2,1,4], # A
+               [2,0,3,5], # B
+               [1,3,0,6], # C
+               [4,5,6,0], # D
+            ]
+    print("g_p86:")
+    for i, (li, wi) in enumerate(zip(g_p86, w_p86)): print('\t', i, li, wi)
+    print("held karp bu:", held_karp_bu(g_p86, w_p86))
 
 
 if __name__ == "__main__":
